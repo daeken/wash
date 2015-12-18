@@ -1,7 +1,12 @@
 #!/usr/bin/python
 
-import os, readline, requests
+import argparse, os, readline, requests
 from bs4 import BeautifulSoup
+
+parser = argparse.ArgumentParser(description='Wolfram|Alpha interactive shell')
+parser.add_argument('-v', '--verbose', action='store_true', help='Output XML for each response')
+
+args = parser.parse_args()
 
 def indent(text):
 	return '\n'.join('    ' + x for x in text.split('\n'))
@@ -10,7 +15,9 @@ url = 'http://api.wolframalpha.com/v2/query'
 fn = os.path.expanduser('~/.wash.appid')
 try:
 	appid = file(fn).read()
+	first_run = False
 except:
+	first_run = True
 	print '\033[93m-- No Wolfram|Alpha app ID'
 	print 'If you do not already have one, go to:'
 	print '  https://developer.wolframalpha.com/portal/apisignup.html\033[0m'
@@ -23,18 +30,30 @@ except:
 		else:
 			print '\033[91mInvalid app ID format\033[0m'
 
+if first_run:
+	print
+	print '\033[92mWelcome to W|ASH\033[0m'
+	print '\033[93mTo get started, simply type a query here as if you are on the Wolfram|Alpha site.'
+	print 'For instance, try this: the 15th prime number * 20\033[0m'
+	print
+
 while True:
 	try:
-		query = raw_input('W|A> ')
+		query = raw_input('W|A> ').strip()
 	except EOFError:
 		print
 		break
 	except KeyboardInterrupt:
 		print
 		continue
-	if query.strip() == '':
+	if query == '':
+		continue
+	elif query == 'quit' or query == 'exit':
+		print '\033[91mTo quit W|ASH, press Ctrl-D\033[0m'
 		continue
 	xml = requests.get(url, params=dict(input=query, appid=appid, format='plaintext')).text
+	if args.verbose:
+		print xml
 
 	bs = BeautifulSoup(xml, 'xml')
 	if bs.queryresult['success'] == 'true':

@@ -1,6 +1,6 @@
 from distutils.core import setup
 
-setup(name='W|ASH',
+setup(name='WASH',
 		version='0.1', 
 		description='Wolfram|Alpha interactive shell', 
 		author='Cody Brocious', 
