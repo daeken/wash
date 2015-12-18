@@ -37,6 +37,8 @@ if first_run:
 	print 'For instance, try this: the 15th prime number * 20\033[0m'
 	print
 
+result = None
+
 while True:
 	try:
 		query = raw_input('W|A> ').strip()
@@ -51,6 +53,22 @@ while True:
 	elif query == 'quit' or query == 'exit':
 		print '\033[91mTo quit W|ASH, press Ctrl-D\033[0m'
 		continue
+	elif query == 'help':
+		print '\033[1m\033[92mW|ASH Help\033[0m'
+		print '\033[93m - Type a query to send it to Wolfram|Alpha'
+		print ' - $$ in a query will be replaced by the previous result'
+		print ' - Ctrl-D to quit\033[0m'
+		print
+		continue
+
+	if '$$' in query:
+		if result is not None:
+			query = query.replace('$$', ' (%s) ' % result)
+		else:
+			print '\033[91m$$ in query with no previous result!\033[0m'
+			print
+			continue
+
 	xml = requests.get(url, params=dict(input=query, appid=appid, format='plaintext')).text
 	if args.verbose:
 		print xml
@@ -61,8 +79,13 @@ while True:
 			if len(pod.plaintext.contents):
 				print '  \033[1m\033[92m%s\033[0m' % pod['title']
 				print indent('\n'.join(pod.plaintext.contents))
+
+				if pod['title'] == 'Result':
+					result = pod.plaintext.contents[0]
+					if '  (' in result:
+						result = result.split('  (', 1)[0]
 	else:
-		print '\033[91mQuery failed'
+		print '\033[91mQuery failed\033[0m'
 		for tip in bs.find_all('tip'):
 			print '\033[93m-', tip['text'], '\033[0m'
 	print
