@@ -3,6 +3,11 @@
 import argparse, os, readline, requests
 from bs4 import BeautifulSoup
 
+try:
+	readline.read_history_file(os.path.expanduser('~/.wash.history'))
+except IOError:
+	pass
+
 parser = argparse.ArgumentParser(description='Wolfram|Alpha interactive shell')
 parser.add_argument('-v', '--verbose', action='store_true', help='Output XML for each response')
 
@@ -10,6 +15,10 @@ args = parser.parse_args()
 
 def indent(text):
 	return '\n'.join('    ' + x for x in text.split('\n'))
+
+def clean(text):
+	text = text.replace(u'\uf7d9', '=')
+	return text
 
 url = 'http://api.wolframalpha.com/v2/query'
 fn = os.path.expanduser('~/.wash.appid')
@@ -48,6 +57,7 @@ while True:
 	except KeyboardInterrupt:
 		print
 		continue
+	readline.write_history_file(os.path.expanduser('~/.wash.history'))
 	if query == '':
 		continue
 	elif query == 'quit' or query == 'exit':
@@ -69,21 +79,30 @@ while True:
 			print
 			continue
 
-	xml = requests.get(url, params=dict(input=query, appid=appid, format='plaintext')).text
+	xml = requests.get(url, params=dict(input=query, appid=appid, format='plaintext')).content
 	if args.verbose:
 		print xml
 
 	bs = BeautifulSoup(xml, 'xml')
 	if bs.queryresult['success'] == 'true':
 		for pod in bs.find_all('pod'):
-			if len(pod.plaintext.contents):
-				print '  \033[1m\033[92m%s\033[0m' % pod['title']
-				print indent('\n'.join(pod.plaintext.contents))
+			print '  \033[1m\033[92m%s\033[0m' % pod['title']
+			numsubpods = int(pod['numsubpods'])
+			for i, subpod in enumerate(pod.find_all('subpod')):
+				if len(subpod.plaintext.contents):
+					text = clean(indent('\n'.join(subpod.plaintext.contents)))
+					print text
 
-				if pod['title'] == 'Result':
-					result = pod.plaintext.contents[0]
-					if '  (' in result:
-						result = result.split('  (', 1)[0]
+					if pod['title'] == 'Result':
+						result = text
+						if '  (' in result:
+							result = result.split('  (', 1)[0]
+					if i + 1 < numsubpods and numsubpods > 1 and '\n' in text:
+						print
+		if len(bs.find_all('pod', dict(scanner='Formula'))):
+			print
+			print '\033[91mThis appears to be an interactive formula.'
+			print 'Results may be nonsensical.\033[0m'
 	else:
 		print '\033[91mQuery failed\033[0m'
 		for tip in bs.find_all('tip'):
