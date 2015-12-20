@@ -24,7 +24,7 @@ def wa_query(query):
 	xml = requests.get(url, params=dict(input=query, appid=appid, format='plaintext')).content
 	if args.verbose:
 		print xml
-	return BeautifulSoup(xml, 'xml')
+	return BeautifulSoup(xml, 'html.parser')
 
 url = 'http://api.wolframalpha.com/v2/query'
 fn = os.path.expanduser('~/.wash.appid')
@@ -79,7 +79,7 @@ while True:
 		print ' - Ctrl-D to quit\033[0m'
 		print
 		continue
-
+	
 	if '$$' in query:
 		if result is not None:
 			query = query.replace('$$', ' (%s) ' % result)
