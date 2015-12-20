@@ -1,12 +1,82 @@
 #!/usr/bin/python
 
-import argparse, os, readline, requests
+import argparse, codecs, os, readline, requests, urllib
 from bs4 import BeautifulSoup
+from mako.template import Template
 
 try:
 	readline.read_history_file(os.path.expanduser('~/.wash.history'))
 except IOError:
 	pass
+
+buffer = []
+
+def write_html(fp):
+	template = Template('''<!doctype html>
+<html>
+	<head>
+		<title>W|ASH Workbook</title>
+		<title>W|ASH Workbook</title>
+		<link href='http://fonts.googleapis.com/css?family=Roboto+Condensed:700,400,300' rel='stylesheet' type='text/css'>
+		<link href='http://fonts.googleapis.com/css?family=Cutive+Mono' rel='stylesheet' type='text/css'>
+		<style>
+			body {
+				background-color: #E4E9EB;
+				font-family: 'Roboto Condensed', sans-serif;
+				margin-left: 60px;
+			}
+			h1 {
+				margin-left: -40px;
+			}
+			h2 {
+				margin-left: -20px;
+			}
+			pre {
+				font-family: 'Cutive Mono', serif;
+			}
+			a {
+				color: black;
+				text-decoration: none;
+				border-bottom: 1px dashed black;
+			}
+			a:hover {
+				border-bottom: 1px solid black;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>W|ASH Workbook</h1>
+		% for query, pods in data:
+			<h2><a href="http://www.wolframalpha.com/input/?i=${quote(query.encode('utf-8'))}">${query}</a></h2>
+			% for name, texts in pods:
+				<h3>${name}</h3>
+				% for text in texts:
+					<pre>${text}</pre>
+				% endfor
+			% endfor
+		% endfor
+	</body>
+</html>''')
+	fp.write(template.render(data=buffer, quote=urllib.quote))
+
+def write_markdown(fp):
+	template = Template('''W|ASH Workbook
+==============
+
+% for query, pods in data:
+${query}
+${'-' * len(query)}
+	% for name, texts in pods:
+${'###'} ${name}
+		% for text in texts:
+${text}
+		% endfor
+
+	% endfor
+
+% endfor
+''')
+	fp.write(template.render(data=buffer))
 
 parser = argparse.ArgumentParser(description='Wolfram|Alpha interactive shell')
 parser.add_argument('-v', '--verbose', action='store_true', help='Output XML for each response')
@@ -76,10 +146,21 @@ while True:
 		print '\033[1m\033[92mW|ASH Help\033[0m'
 		print '\033[93m - Type a query to send it to Wolfram|Alpha'
 		print ' - $$ in a query will be replaced by the previous result'
+		print ' - save <filename> will save the current buffer to a file as HTML or Markdown'
+		print '   - To save HTML, simply add .html to the filename'
 		print ' - Ctrl-D to quit\033[0m'
 		print
 		continue
-	
+	elif query.startswith('save '):
+		fn = query[5:].strip()
+		print '\033[92mSaving to', fn, '\033[0m'
+		with codecs.open(fn, 'w', 'utf-8') as fp:
+			if fn.lower().endswith('.html'):
+				write_html(fp)
+			else:
+				write_markdown(fp)
+		continue
+
 	if '$$' in query:
 		if result is not None:
 			query = query.replace('$$', ' (%s) ' % result)
@@ -90,13 +171,20 @@ while True:
 
 	bs = wa_query(query)
 	if bs.queryresult['success'] == 'true':
+		element = (query, [])
+		buffer.append(element)
 		for pod in bs.find_all('pod'):
-			print '  \033[1m\033[92m%s\033[0m' % pod['title']
 			numsubpods = int(pod['numsubpods'])
+			if numsubpods == 0 or ''.join(''.join(subpod.plaintext.contents) for subpod in pod.find_all('subpod')).strip() == '':
+				continue
+			epod = (pod['title'], [])
+			element[1].append(epod)
+			print '  \033[1m\033[92m%s\033[0m' % pod['title']
 			for i, subpod in enumerate(pod.find_all('subpod')):
 				if len(subpod.plaintext.contents):
 					text = clean(indent('\n'.join(subpod.plaintext.contents)))
 					print text
+					epod[1].append(text)
 
 					if pod['title'] == 'Result':
 						result = text
