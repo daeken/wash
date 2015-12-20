@@ -20,6 +20,12 @@ def clean(text):
 	text = text.replace(u'\uf7d9', '=')
 	return text
 
+def wa_query(query):
+	xml = requests.get(url, params=dict(input=query, appid=appid, format='plaintext')).content
+	if args.verbose:
+		print xml
+	return BeautifulSoup(xml, 'xml')
+
 url = 'http://api.wolframalpha.com/v2/query'
 fn = os.path.expanduser('~/.wash.appid')
 try:
@@ -32,12 +38,15 @@ except:
 	print '  https://developer.wolframalpha.com/portal/apisignup.html\033[0m'
 	while True:
 		appid = raw_input('Please enter your app ID: ').strip()
-		if len(appid) == 17 and appid[6] == '-':
+		bs = wa_query('Cody Brocious')
+		print '\033[93mVerifying App ID...'
+		if bs.queryresult['success'] == 'true' and bs.queryresult['error'] == 'false':
+			print '\033[92mApp ID is correct\033[0m'
 			with file(fn, 'w') as fp:
 				fp.write(appid)
 			break
 		else:
-			print '\033[91mInvalid app ID format\033[0m'
+			print '\033[91mApp ID is invalid\033[0m'
 
 if first_run:
 	print
@@ -79,11 +88,7 @@ while True:
 			print
 			continue
 
-	xml = requests.get(url, params=dict(input=query, appid=appid, format='plaintext')).content
-	if args.verbose:
-		print xml
-
-	bs = BeautifulSoup(xml, 'xml')
+	bs = wa_query(query)
 	if bs.queryresult['success'] == 'true':
 		for pod in bs.find_all('pod'):
 			print '  \033[1m\033[92m%s\033[0m' % pod['title']
