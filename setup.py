@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(name='WASH',
-		version='0.4', 
+		version='1.0', 
 		description='Wolfram|Alpha interactive shell', 
 		author='Cody Brocious', 
 		author_email='cody.brocious@gmail.com', 
@@ -10,5 +10,7 @@ setup(name='WASH',
 			'requests',
 			'beautifulsoup4', 
 			'lxml'
-		]
+		], 
+		license='CC0', 
+		url='https://pypi.python.org/pypi/WASH'
 	)
