@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(name='WASH',
-		version='1.3', 
+		version='1.4', 
 		description='Wolfram|Alpha interactive shell', 
 		author='Cody Brocious', 
 		author_email='cody.brocious@gmail.com', 

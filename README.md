@@ -31,3 +31,8 @@ The last `Result` pod will always be stored as `$$`.  So you can do:
 It will automatically be parenthesized, so you don't have to worry about symbols colliding.
 
 In addition, the Result pod is often suffixed with extraneous details.  Where possible, we will remove this to ensure seamless functionality.
+
+Credits
+=======
+
+Code and initial design by Cody Brocious (Daeken).  Huge thanks to John Trainer (NightMiles) for help with design of HTML workbooks.
