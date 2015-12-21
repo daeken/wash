@@ -61,6 +61,7 @@ def write_html(fp):
 			border-left: 1px solid #9ac;
 			border-right: 1px solid #9ac;
 			border-collapse: collapse;
+			white-space: pre-wrap;
 		}
 		article > h3:nth-of-type(1) {
 			border-top-left-radius: 4px;
