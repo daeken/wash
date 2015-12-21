@@ -32,6 +32,14 @@ It will automatically be parenthesized, so you don't have to worry about symbols
 
 In addition, the Result pod is often suffixed with extraneous details.  Where possible, we will remove this to ensure seamless functionality.
 
+Saving Workbooks
+================
+
+The history of the commands you run (and their results) in a given session is called a workbook.  These can be output as either HTML or Markdown using the `save` command.
+
+- `save <filename>.html` will always save HTML format
+- Any other extension will save as Markdown
+
 Credits
 =======
 
