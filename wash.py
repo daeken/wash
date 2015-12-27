@@ -1,8 +1,12 @@
 #!/usr/bin/python
 
-import argparse, codecs, os, readline, requests, urllib
+import argparse, codecs, colorama, os, requests, urllib
 from bs4 import BeautifulSoup
 from mako.template import Template
+
+colorama.init()
+
+import readline
 
 try:
 	readline.read_history_file(os.path.expanduser('~/.wash.history'))
@@ -129,6 +133,7 @@ def clean(text):
 	text = text.replace(u'\uf7d9', '=')
 	return text
 
+url = 'http://api.wolframalpha.com/v2/query'
 def wa_query(query):
 	xml = requests.get(url, params=dict(input=query, appid=appid, format='plaintext')).content
 	if args.verbose:
@@ -136,12 +141,12 @@ def wa_query(query):
 	return BeautifulSoup(xml, 'html.parser')
 
 def main():
+	global appid, args
 	parser = argparse.ArgumentParser(description='Wolfram|Alpha interactive shell')
 	parser.add_argument('-v', '--verbose', action='store_true', help='Output XML for each response')
 
 	args = parser.parse_args()
 
-	url = 'http://api.wolframalpha.com/v2/query'
 	fn = os.path.expanduser('~/.wash.appid')
 	try:
 		appid = file(fn).read()

@@ -1,7 +1,8 @@
 from setuptools import setup
+import sys
 
 setup(name='WASH',
-		version='1.6', 
+		version='1.6.1', 
 		description='Wolfram|Alpha interactive shell', 
 		author='Cody Brocious', 
 		author_email='cody.brocious@gmail.com', 
@@ -12,10 +13,11 @@ setup(name='WASH',
 			]
 		), 
 		install_requires=[
-			'requests',
 			'beautifulsoup4', 
-			'mako'
-		], 
+			'colorama', 
+			'mako', 
+			'requests',
+		] + (['pyreadline'] if sys.platform == 'win32' else []), 
 		license='CC0', 
 		url='https://pypi.python.org/pypi/WASH'
 	)
