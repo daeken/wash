@@ -1,8 +1,12 @@
 #!/usr/bin/python
 
-import argparse, codecs, colorama, os, requests, urllib
+import argparse, codecs, colorama, os, requests, urllib, sys
 from bs4 import BeautifulSoup
 from mako.template import Template
+
+if sys.platform == 'win32':
+	import win_unicode_console
+	win_unicode_console.enable()
 
 colorama.init()
 
